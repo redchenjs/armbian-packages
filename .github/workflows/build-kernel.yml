@@ -28,7 +28,7 @@ jobs:
       - name: Check latest kernel version
         shell: bash {0}
         run: |
-          if [[ $KERNEL_VERSION == $RELEASE_VERSION ]]; then
+          if [[ ${{ env.KERNEL_VERSION }}-rockchip == ${{ env.RELEASE_VERSION }} ]]; then
             echo "LATEST_VERSION=1" >> $GITHUB_ENV
           else
             echo "LATEST_VERSION=0" >> $GITHUB_ENV
@@ -49,17 +49,11 @@ jobs:
           sudo bash -c "sha512sum $FILE | sed -r 's#([0-9a-z]+).*#\1#' > $FILE.sha512sum"
           FILE="output/debs/linux-headers-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb"
           sudo bash -c "sha512sum $FILE | sed -r 's#([0-9a-z]+).*#\1#' > $FILE.sha512sum"
-      - name: Upload DEB packages
+      - name: Upload artifacts
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         uses: actions/upload-artifact@main
         with:
-          path: |
-            output/debs/linux-dtb-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-dtb-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
-            output/debs/linux-image-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-image-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
-            output/debs/linux-headers-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-headers-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
+          path: output/debs/*.deb
       - name: Create release
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         id: create_release
@@ -79,13 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          targets: |
-            output/debs/linux-dtb-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-dtb-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
-            output/debs/linux-image-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-image-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
-            output/debs/linux-headers-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb
-            output/debs/linux-headers-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb.sha512sum
+          targets: output/debs/linux-*-current-rockchip_${{ env.ARMBIAN_VERSION }}_armhf.deb*
       - name: Delete workflows
         uses: ActionsRML/delete-workflow-runs@main
         with:

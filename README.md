@@ -1,5 +1,5 @@
-Build Armbian kernel using GitHub Actions
-=========================================
+Build Armbian packages using GitHub Actions
+===========================================
 
 ## Packages
 

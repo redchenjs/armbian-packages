@@ -1,4 +1,4 @@
-name: Build Armbian
+name: Build
 
 on:
   workflow_dispatch:

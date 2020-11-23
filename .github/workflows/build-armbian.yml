@@ -24,7 +24,6 @@ jobs:
       - name: Get Armbian kernel version
         shell: bash {0}
         run: |
-          echo "BOARD_NAME=tinkerboard" >> $GITHUB_ENV
           echo "UBUNTU_VERSION=focal" >> $GITHUB_ENV
           echo "KERNEL_VERSION=v$(cat config/kernel/linux-rockchip-current.config | grep '# Linux/arm' | sed -r 's#.*([0-9]+.[0-9+].[0-9]+).*#\1#')" >> $GITHUB_ENV
       - name: Check latest kernel version
@@ -39,14 +38,16 @@ jobs:
         if: env.LATEST_VERSION == 0
         shell: bash {0}
         run: |
-          ./compile.sh BOARD="${{ env.BOARD_NAME }}" BRANCH="current" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no" RELEASE="${{ env.UBUNTU_VERSION }}"
-          echo "ARMBIAN_VERSION=$(find output/debs -mindepth 1 -maxdepth 1 -type f 2>&1 | grep 'linux-dtb-.*.deb$' | sed -r 's#.*_(.*)_.*#\1#')" >> $GITHUB_ENV
+          ./compile.sh BOARD="tinkerboard" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
+          echo "ARMBIAN_VERSION=$(find output/debs -mindepth 1 -maxdepth 1 -type f 2>&1 | grep 'linux-dtb-.*.deb$' | sed -r 's#.*_(.*)-.*#\1#')" >> $GITHUB_ENV
       - name: Generate SHA512 checksums
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         shell: bash {0}
         run: |
+          mkdir artifacts
           for file in output/debs/linux-*_armhf.deb output/debs/${{ env.UBUNTU_VERSION }}/linux-*_armhf.deb; do
             sudo bash -c "sha512sum $file | sed -r 's#([0-9a-z]+).*#\1#' > $file.sha512sum"
+            sudo mv $file* artifacts/
           done
       - name: Create release
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
@@ -57,7 +58,7 @@ jobs:
         with:
           tag_name: ${{ env.KERNEL_VERSION }}-rockchip
           release_name: Release ${{ env.KERNEL_VERSION }}-rockchip
-          body: ${{ env.ARMBIAN_VERSION }}
+          body: ${{ env.ARMBIAN_VERSION }}-${{ env.UBUNTU_VERSION }}
           draft: false
           prerelease: false
       - name: Upload release assets
@@ -67,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          targets: output/debs/linux-*_armhf.deb* output/debs/${{ env.UBUNTU_VERSION }}/linux-*_armhf.deb*
+          targets: artifacts/*
       - name: Delete workflows
         uses: ActionsRML/delete-workflow-runs@main
         with:

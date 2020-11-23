@@ -17,7 +17,7 @@ jobs:
         shell: bash {0}
         run: |
           curl -s -L https://api.github.com/repos/redchenjs/armbian-kernel/releases/latest -o release
-          echo "UBUNTU_VERSION=$(cat release | grep body | sed -r 's#.*".*-(.*)".*$#\1#')"" >> $GITHUB_ENV
+          echo "UBUNTU_VERSION=$(cat release | grep body | sed -r 's#.*".*-(.*)".*$#\1#')" >> $GITHUB_ENV
           echo "RELEASE_VERSION=$(cat release | grep tag_name | sed -r 's#.*"v(.*)-.*".*$#\1#')" >> $GITHUB_ENV
           echo "ARMBIAN_VERSION=$(cat release | grep body | sed -r 's#.*"(.*)-.*".*$#\1#')" >> $GITHUB_ENV
       - name: Compile & Install Pacman

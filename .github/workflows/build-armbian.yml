@@ -25,11 +25,12 @@ jobs:
         shell: bash {0}
         run: |
           echo "UBUNTU_VERSION=focal" >> $GITHUB_ENV
-          echo "KERNEL_VERSION=v$(cat config/kernel/linux-rockchip-current.config | grep '# Linux/arm' | sed -r 's#.*([0-9]+.[0-9+].[0-9]+).*#\1#')" >> $GITHUB_ENV
+          echo "KERNEL_VERSION=$(cat config/kernel/linux-rockchip-current.config | grep '# Linux/arm' | sed -r 's#.*([0-9]+.[0-9+].[0-9]+).*#\1#')" >> $GITHUB_ENV
+          echo "ARMBIAN_VERSION=$(cat VERSION | sed -r 's#(.*)-.*#\1#')" >> $GITHUB_ENV
       - name: Check latest kernel version
         shell: bash {0}
         run: |
-          if [[ ${{ env.KERNEL_VERSION }}-rockchip == ${{ env.RELEASE_VERSION }} ]]; then
+          if [[ v${{ env.KERNEL_VERSION }}-rockchip == ${{ env.RELEASE_VERSION }} ]]; then
             echo "LATEST_VERSION=1" >> $GITHUB_ENV
           else
             echo "LATEST_VERSION=0" >> $GITHUB_ENV
@@ -39,13 +40,12 @@ jobs:
         shell: bash {0}
         run: |
           ./compile.sh BOARD="tinkerboard" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
-          echo "ARMBIAN_VERSION=$(find output/debs -mindepth 1 -maxdepth 1 -type f 2>&1 | grep 'linux-dtb-.*.deb$' | sed -r 's#.*_(.*)-.*#\1#')" >> $GITHUB_ENV
       - name: Generate package checksums
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         shell: bash {0}
         run: |
           mkdir artifacts
-          for file in output/debs/linux-*_armhf.deb output/debs/${{ env.UBUNTU_VERSION }}/linux-*_armhf.deb; do
+          for file in output/debs/armbian-firmware_*_all.deb output/debs/linux-*_armhf.deb output/debs/${{ env.UBUNTU_VERSION }}/linux-*_armhf.deb; do
             sudo bash -c "sha512sum $file | sed -r 's#([0-9a-z]+).*#\1#' > $file.sha512sum"
             sudo mv $file* artifacts/
           done
@@ -56,8 +56,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.KERNEL_VERSION }}-rockchip
-          release_name: Release ${{ env.KERNEL_VERSION }}-rockchip
+          tag_name: v${{ env.KERNEL_VERSION }}-rockchip
+          release_name: Release v${{ env.KERNEL_VERSION }}-rockchip
           body: ${{ env.ARMBIAN_VERSION }}-${{ env.UBUNTU_VERSION }}
           draft: false
           prerelease: false

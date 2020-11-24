@@ -30,7 +30,7 @@ jobs:
       - name: Compare release versions
         shell: bash {0}
         run: |
-          if [[ v${{ env.KERNEL_VERSION }}-rockchip == ${{ env.RELEASE_VERSION }} ]]; then
+          if [[ "v${{ env.KERNEL_VERSION }}-rockchip" == "${{ env.RELEASE_VERSION }}" ]]; then
             echo "LATEST_VERSION=1" >> $GITHUB_ENV
           else
             echo "LATEST_VERSION=0" >> $GITHUB_ENV

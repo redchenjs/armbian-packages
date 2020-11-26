@@ -9,14 +9,16 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout current repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: '0'
+      - name: Set environment variables
+        shell: bash {0}
+        run: |
+          echo "BOARD=rockpi-4c" >> $GITHUB_ENV
+          echo "PLATFORM=rockchip64" >> $GITHUB_ENV
+          echo "UBUNTU_VERSION=focal" >> $GITHUB_ENV
       - name: Get latest release version
         shell: bash {0}
         run: |
-          echo "RELEASE_VERSION=$(curl -s -L https://api.github.com/repos/redchenjs/armbian-ci/tags | grep '".*-rockchip64"' | head -n 1 | sed -r 's|.*"(.*)".*|\1|g')" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$(curl -s -L https://api.github.com/repos/redchenjs/armbian-ci/tags | grep '".*-${{ env.PLATFORM }}"' | head -n 1 | sed -r 's|.*"(.*)".*|\1|g')" >> $GITHUB_ENV
       - name: Checkout Armbian repository
         uses: actions/checkout@v2
         with:
@@ -24,13 +26,13 @@ jobs:
       - name: Get latest Armbian version
         shell: bash {0}
         run: |
-          echo "UBUNTU_VERSION=focal" >> $GITHUB_ENV
-          echo "KERNEL_VERSION=$(cat config/kernel/linux-rockchip64-current.config | grep '# Linux/arm' | sed -r 's|.*([0-9]+.[0-9+].[0-9]+).*|\1|g')" >> $GITHUB_ENV
+          KERNEL_VERSION=$(cat config/kernel/linux-${{ env.PLATFORM }}-current.config | grep '# Linux/arm' | sed -r 's|.*([0-9]+.[0-9+]).[0-9]+.*|\1|g')
+          echo "KERNEL_VERSION=$KERNEL_VERSION.$(curl -s -L https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/Makefile?h=linux-$KERNEL_VERSION.y | grep 'SUBLEVEL' | head -n 1 | sed -r 's|.* ([0-9]+)$|\1|g')" >> $GITHUB_ENV
           echo "ARMBIAN_VERSION=$(cat VERSION | sed -r 's|(.*)-.*|\1|g')" >> $GITHUB_ENV
       - name: Compare release versions
         shell: bash {0}
         run: |
-          if [[ "v${{ env.KERNEL_VERSION }}-rockchip64" == "${{ env.RELEASE_VERSION }}" ]]; then
+          if [[ "v${{ env.KERNEL_VERSION }}-${{ env.PLATFORM }}" == "${{ env.RELEASE_VERSION }}" ]]; then
             echo "LATEST_VERSION=1" >> $GITHUB_ENV
           else
             echo "LATEST_VERSION=0" >> $GITHUB_ENV
@@ -39,13 +41,13 @@ jobs:
         if: env.LATEST_VERSION == 0
         shell: bash {0}
         run: |
-          ./compile.sh BOARD="rockpi-4c" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
+          ./compile.sh BOARD="${{ env.BOARD }}" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
       - name: Generate package checksums
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         shell: bash {0}
         run: |
           mkdir artifacts
-          for file in output/debs/armbian-firmware_*_all.deb output/debs/linux-*_arm64.deb output/debs/${{ env.UBUNTU_VERSION }}/linux-*_arm64.deb; do
+          for file in output/debs/armbian-firmware_*_all.deb output/debs/linux-*_arm*.deb output/debs/${{ env.UBUNTU_VERSION }}/linux-*_arm*.deb; do
             sudo bash -c "sha512sum $file | sed -r 's|([0-9a-z]+).*|\1|g' > $file.sha512sum"
             sudo mv $file* artifacts/
           done
@@ -56,8 +58,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.KERNEL_VERSION }}-rockchip64
-          release_name: Release v${{ env.KERNEL_VERSION }}-rockchip64
+          tag_name: v${{ env.KERNEL_VERSION }}-${{ env.PLATFORM }}
+          release_name: Release v${{ env.KERNEL_VERSION }}-${{ env.PLATFORM }}
           body: ${{ env.ARMBIAN_VERSION }}-${{ env.UBUNTU_VERSION }}
           draft: false
           prerelease: false

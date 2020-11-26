@@ -2,8 +2,8 @@ name: rockchip
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 00 18 * * *
+  # schedule:
+    # - cron: 00 20 * * *
 
 jobs:
   build:
@@ -71,8 +71,3 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           targets: artifacts/*
-      - name: Delete workflows
-        uses: ActionsRML/delete-workflow-runs@main
-        with:
-          retain_days: 1
-          keep_minimum_runs: 3

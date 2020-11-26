@@ -39,7 +39,7 @@ jobs:
         if: env.LATEST_VERSION == 0
         shell: bash {0}
         run: |
-          ./compile.sh BOARD="rockpro64" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
+          ./compile.sh BOARD="rockpi-4c" BRANCH="current" RELEASE="${{ env.UBUNTU_VERSION }}" KERNEL_ONLY="yes" KERNEL_CONFIGURE="no"
       - name: Generate package checksums
         if: env.LATEST_VERSION == 0 && env.ARMBIAN_VERSION
         shell: bash {0}

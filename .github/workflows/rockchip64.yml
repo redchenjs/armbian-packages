@@ -2,8 +2,8 @@ name: rockchip64
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 00 22 * * *
+  # schedule:
+    # - cron: 00 22 * * *
 
 jobs:
   build:

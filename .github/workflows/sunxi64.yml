@@ -2,8 +2,8 @@ name: sunxi64
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 00 20 * * *
+  # schedule:
+    # - cron: 00 18 * * *
 
 jobs:
   build:

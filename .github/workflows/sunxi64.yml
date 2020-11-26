@@ -16,7 +16,7 @@ jobs:
       - name: Get latest release version
         shell: bash {0}
         run: |
-          echo "RELEASE_VERSION=$(curl -s -L https://api.github.com/repos/redchenjs/armbian-ci/tags | grep '[0-9]-sunxi64' | head -n 1 | sed -r 's|.*"(.*)".*|\1|g')" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$(curl -s -L https://api.github.com/repos/redchenjs/armbian-ci/tags | grep '".*-sunxi64"' | head -n 1 | sed -r 's|.*"(.*)".*|\1|g')" >> $GITHUB_ENV
       - name: Checkout Armbian repository
         uses: actions/checkout@v2
         with:

@@ -22,7 +22,7 @@ jobs:
       - name: Checkout Armbian repository
         uses: actions/checkout@v2
         with:
-          repository: 'armbian/build'
+          repository: 'redchenjs/build'
       - name: Get latest Armbian version
         shell: bash {0}
         run: |

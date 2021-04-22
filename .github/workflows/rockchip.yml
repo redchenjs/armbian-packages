@@ -26,7 +26,7 @@ jobs:
       - name: Get latest Armbian version
         shell: bash {0}
         run: |
-          KERNEL_VERSION=$(cat config/kernel/linux-${{ env.PLATFORM }}-current.config | grep '# Linux/arm' | sed -r 's|.*([0-9]+.[0-9+]).[0-9]+.*|\1|g')
+          KERNEL_VERSION=$(cat config/kernel/linux-${{ env.PLATFORM }}-current.config | grep '# Linux/arm' | sed -r 's|.*([0-9]+.[0-9]+).[0-9]+.*|\1|g')
           echo "KERNEL_VERSION=$KERNEL_VERSION.$(curl -s -L https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/Makefile?h=linux-$KERNEL_VERSION.y | grep 'SUBLEVEL' | head -n 1 | sed -r 's|.* ([0-9]+)$|\1|g')" >> $GITHUB_ENV
           echo "ARMBIAN_VERSION=$(cat VERSION | sed -r 's|(.*)-.*|\1|g')" >> $GITHUB_ENV
       - name: Compare release versions
